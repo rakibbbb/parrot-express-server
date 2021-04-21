@@ -18,7 +18,7 @@ app.use(cors());
 var serviceAccount = require("./configs/handyy-man-firebase-adminsdk-sy9uu-af4a45bfed.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL:"process.env.FIRE_DB"
+  databaseURL:`process.env.FIRE_DB`
 });
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
