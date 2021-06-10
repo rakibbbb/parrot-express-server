@@ -15,7 +15,7 @@ const port = 5000
 app.use(bodyParser.json());
 app.use(cors());
 
-var serviceAccount = require("./configs/handyy-man-firebase-adminsdk-sy9uu-af4a45bfed.json");
+var serviceAccount = require("./configs/parrot-express-firebase-adminsdk-gmyuo-eacace7aff.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL:`process.env.FIRE_DB`
@@ -26,6 +26,7 @@ client.connect(err => {
   const serviceCollection = client.db(`${process.env.DB_NAME}`).collection("services");
   const bookingsCollection = client.db(`${process.env.DB_NAME}`).collection("bookings");
   const adminsCollection = client.db(`${process.env.DB_NAME}`).collection("admins");
+  const managersCollection = client.db(`${process.env.DB_NAME}`).collection("managers");
   const reviewsCollection = client.db(`${process.env.DB_NAME}`).collection("reviews");
 
   //add service
@@ -81,13 +82,14 @@ client.connect(err => {
   })
 
   // book service
-  app.post('/booking', (req, res) => {
+  app.post('/addBooking', (req, res) => {
     const newBooking= req.body;
     bookingsCollection.insertOne(newBooking)
     .then(result=>{
       res.send(result.insertedCount > 0);
     })
   })
+
 
   app.get('/bookings', (req, res) => {
     const bearer=req.headers.authorization;
@@ -146,8 +148,8 @@ app.get('/bookings/all', (req,res)=>{
 
   //add admin
   app.post('/addAdmin', (req, res) => {
-    const newBooking= req.body;
-    adminsCollection.insertOne(newBooking)
+    const newAdmin= req.body;
+    adminsCollection.insertOne(newAdmin)
     .then(result=>{
       res.send(result.insertedCount > 0);
     })
@@ -161,6 +163,59 @@ app.get('/bookings/all', (req,res)=>{
         })
   })
 
+  //add manager
+  app.post('/addManager', (req, res) => {
+    const newManager= req.body;
+    managersCollection.insertOne(newManager)
+    .then(result=>{
+      res.send(result.insertedCount > 0);
+    })
+  })
+
+  app.post('/isManager', (req, res) => {
+    const email = req.body.email;
+    managersCollection.find({ email: email })
+        .toArray((err, managers) => {
+            res.send(managers.length > 0);
+        })
+  })
+
+  app.get('/managers', (req, res) => {
+    const bearer=req.headers.authorization;
+     if(bearer && bearer.startsWith('Bearer ')){
+      const idToken =bearer.split(' ')[1];
+      admin.auth().verifyIdToken(idToken)
+       .then((decodedToken) => {
+          const tokenEmail = decodedToken.email;
+          const queryEmail = req.query.email;
+          if(tokenEmail == queryEmail){
+            managersCollection.find({email: queryEmail})
+                .toArray((err, documents)=>{
+                  res.status(200).send(documents)
+                })
+          }
+          else{
+            res.status(401).send('Un-authorized Access')
+          }
+       })
+       .catch((error) => {
+          res.status(401).send('Un-authorized Access')
+       });
+   }
+   else{
+      res.status(401).send('Un-authorized Access')
+   }
+  })
+
+  //load all manager
+app.get('/managers/all', (req,res)=>{
+  managersCollection.find()
+  .toArray((err, items)=>{
+    res.send(items)
+  })  
+})
+
+  //Add reviews
   app.post('/addReview', (req, res) => {
     const newReview= req.body;
     reviewsCollection.insertOne(newReview)
@@ -169,7 +224,7 @@ app.get('/bookings/all', (req,res)=>{
     })
   })
 
-  //load all bookings
+  //load reviews
   app.get('/reviews', (req,res)=>{
     reviewsCollection.find()
     .toArray((err, items)=>{
@@ -180,7 +235,7 @@ app.get('/bookings/all', (req,res)=>{
 
 app.get('/', (req, res) => {
   
-    res.send('Hello World!')
+    res.send('Welcome to Parrot Express Server.')
   })
   
   app.listen(process.env.PORT || port)
