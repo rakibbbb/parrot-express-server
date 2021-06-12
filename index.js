@@ -127,6 +127,14 @@ app.get('/bookings/all', (req,res)=>{
     })  
   })
 
+  //Load bookings by id
+  app.get('/booking/:id', (req,res)=>{
+    bookingsCollection.find({_id: ObjectId(req.params.id)})
+    .toArray((err, items)=>{
+      res.send(items)
+    })  
+  })
+
   //edit booking status
   app.patch('/booking/update/:id',(req,res)=>{
     bookingsCollection.updateOne({_id: ObjectId(req.params.id)},
