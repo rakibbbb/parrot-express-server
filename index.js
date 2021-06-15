@@ -21,6 +21,42 @@ admin.initializeApp({
   databaseURL:`process.env.FIRE_DB`
 });
 
+//Nodemailer
+var nodemailer = require('nodemailer');
+const sendEmail=bookingData=>{
+  console.log(bookingData.email);
+  
+
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'rakib141746@gmail.com',
+      pass: 'devRakib420'
+    }
+  });
+
+  var mailOptions = {
+    from: 'rakib141746@gmail.com',
+    to: `${bookingData.email}`,
+    // to: 'rakib141746@gmail.com',
+    subject: 'New Booking on ParrotEx (No Reply)',
+    html: `
+    <p>Hello! ${bookingData.name},</p>
+    <p>You have placed a booking to ParrotEx on ${bookingData.date}. Your order no is #${bookingData._id}.</p>
+    <p>Your product weight is ${bookingData.weight} kg and your total cost is ${bookingData.totalCost} Taka. </p>
+    <p>Thank you for staying with ParrotEx.</p>
+    `
+  };
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
+
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
   const serviceCollection = client.db(`${process.env.DB_NAME}`).collection("services");
@@ -83,9 +119,11 @@ client.connect(err => {
 
   // book service
   app.post('/addBooking', (req, res) => {
+    const bookingData = req.body;
     const newBooking= req.body;
     bookingsCollection.insertOne(newBooking)
     .then(result=>{
+      sendEmail(bookingData);
       res.send(result.insertedCount > 0);
     })
   })
