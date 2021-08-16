@@ -42,7 +42,7 @@ const sendEmail=bookingData=>{
     subject: 'New Booking on ParrotEx (No Reply)',
     html: `
     <p>Hello! ${bookingData.name},</p>
-    <p>You have placed a booking to ParrotEx on ${bookingData.date}. Your order no is #${bookingData._id}.</p>
+    <p>You have placed a booking to ParrotEx on ${bookingData.date}. Your booking id is #${bookingData._id}.</p>
     <p>Your product weight is ${bookingData.weight} kg and your total cost is ${bookingData.totalCost} Taka. </p>
     <p>Thank you for staying with ParrotEx.</p>
     `
